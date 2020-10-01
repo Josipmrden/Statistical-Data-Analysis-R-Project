@@ -1,0 +1,424 @@
+---
+title: "Analiza rezultata istraživanja"
+author: "Josip Jukić, Josip Matak, Josip Mrđen"
+date: "Lipanj, 2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Opis problema 
+
+  Provedeno je istraživanje o broju stranica neke knjige u sklopu jednog kolegija na fakultetu. Stotinjak studenata, podijeljenih u grupe odgovarala je na tri pitanja prije i poslije no što im je rečeno da će za točan odgovor dobiti određenu nagradu. Sljedeća tri pitanja postavljena su studentima :
+\begin{itemize}
+\item Koliko stranica ima pokazana knjiga ?
+\item Kako će broj stranica procijeniti cijela grupa ?
+\item Kako će broj stranica procijeniti moji prijatelji ?
+\end{itemize}
+
+# Opis podataka
+  Skup se sastoji od 106 podataka sa sljedećim opisom značajki :
+\begin{itemize}
+  \item \textbf{Grupa.Pred} - grupa u kojoj ispitanik sluša predavanja
+  \item \textbf{student\_bezNagrade} - studentova procjena broja stranica prije saznanja o nagradi
+  \item \textbf{cijela.Grupa\_bezNagrade} - studentova procjena mišljenja cijele grupe ispitanika prije saznanja o nagradi
+  \item \textbf{samo.Prijatelji\_bezNagrade} - studentova procjena mišljenja njegovih prijatelja prije saznanja o nagradi
+  \item \textbf{student\_Nagrada} - studentova procjena broja stranica nakon saznanja o nagradi
+  \item \textbf{cijela.Grupa\_Nagrada} - studentova procjena mišljenja cijele grupe ispitanika nakon saznanja o nagradi
+  \item \textbf{samo.Prijatelji\_Nagrada} - studentova procjena mišljenja njegovih prijatelja nakon saznanja o nagradi
+  \item \textbf{MI} - broj bodova postignut na međuispitu
+  \item \textbf{spol} - spol studenta
+\end{itemize}
+
+Zadan je i točan broj stranica knjige koja je bila procjenjivana. 
+```{r}
+CORRECT_PAGE_NO = 1171
+```
+
+Podaci su učitani iz csv datoteke sa svim navedenim značajkama.
+```{r}
+book = read.csv('knjiga.csv', header = TRUE)
+```
+\newpage
+
+Raspored intervjuiranih studenata po grupama: 
+\vspace{5mm}
+```{r fig.align='center'}
+library(plotrix)
+pie3D(table(book$Grupa.Pred),labels=levels(book$Grupa.Pred),
+      main="Raspodjela ispitanika po grupama")
+```
+\vspace{5mm}
+
+Prethodni grafikon pokazuje da anketa nije provedena ravnomjerno po grupama. Najveći broj ispitanika dolazi iz grupe P01.
+
+\vspace{5mm}
+
+Zatim je isti postupak proveden na udio muškaraca i žena koji su odgovorili na anketna pitanja.
+```{r fig.align='center'}
+pie3D(table(book$spol),labels=c("Z", "M"),
+      main="Raspodjela ispitanika po spolu", explode = 0.03)
+```
+\vspace{5mm}
+Iz prikazanog grafa proizlazi zaključak da je anketa provedena na nekom tehničkom fakultetu uzevši u obzir udio muškaraca i žena koji su na nju odgovorili.
+
+
+\newpage
+U nastavku je prikazana raspodjela odgovora u pravokutnom dijagramu za svaki od anketnih pitanja.
+```{r fig.align='center'}
+boxplot(book$student_bezNagrade, book$cijela.grupa_bezNagrade,
+        book$samo.prijatelji_bezNagrade,book$student_Nagrada,
+        book$cijela.grupa_Nagrada, book$samo.prijatelji_Nagrada,
+        main="Raspodjela odgovora po anketnim pitanjima",
+        names=c("Student BN", "Cijela grupa BN", "Prijatelji BN", 
+                "Student N", "Cijela grupa N", "Prijatelji N"), cex.axis=0.7)
+```
+Na svako anketno pitanje dani su vrlo slični odgovori, stoga je raspored pravokutnih dijagrama gotovo identičan. Nisu vidljiva neka veća odstupanja od kvartilnih rangova, a tamo gdje su zabilježena, uglavnom se radi o preciznijem odogovoru na pitanje o broju stranica.
+
+## Mjere centralne tendencije
+U tablici se nalaze najvažnije mjere centralne tendencije. Za dobivene podatke izračunati su srednja vrijednost, standardna devijacija, minimalno i maksimalno zabilježen podatak za svaku kategoriju.
+```{r eval=FALSE}
+require(stargazer)
+stargazer(book)
+```
+\begin{table}[!htbp] \centering 
+  \caption{} 
+  \label{} 
+\begin{tabular}{@{\extracolsep{5pt}}lccccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+Statistic & \multicolumn{1}{c}{N} & \multicolumn{1}{c}{Sr.vrij.} & \multicolumn{1}{c}{St. dev.} & \multicolumn{1}{c}{Min} & \multicolumn{1}{c}{Max} \\ 
+\hline \\[-1.8ex] 
+student\_bezNagrade & 106 & 652.698 & 231.561 & 350 & 1,600 \\ 
+cijela.grupa\_bezNagrade & 105 & 595.610 & 181.193 & 200 & 1,139 \\ 
+samo.prijatelji\_bezNagrade & 102 & 625.990 & 200.998 & 234 & 1,200 \\ 
+student\_Nagrada & 106 & 653.368 & 218.169 & 343 & 1,364 \\ 
+cijela.grupa\_Nagrada & 105 & 635.086 & 194.420 & 300 & 1,200 \\ 
+samo.prijatelji\_Nagrada & 103 & 633.359 & 206.171 & 250 & 1,500 \\ 
+MI & 106 & 18.297 & 4.917 & 6.500 & 28.000 \\ 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\end{table} 
+
+# Normalnost varijabli
+Analizirajući histograme i qq-grafove po pojedinim značajkama podataka, zaključili smo da se sve varijable mogu aproksimirati normalnom razdiobom. To nam omogućava raznoliku paletu testova koji pretpostavljaju normalnost podataka. 
+
+```{r}
+drawHistWithNorm <- function(variable, name, 
+                             xname = "Procjena broja stranica", yname = "Frekvencija",
+                             histcol = "dodgerblue4", normcol = "orange",
+                             numbOfClasses = 16) {
+  
+  histogram_var = variable[!is.na(variable)]
+  h = hist(histogram_var
+           , nclass = numbOfClasses, col = histcol, main=name, xlab=xname, ylab=yname)
+  xfit = seq(min(histogram_var), max(histogram_var), length = 40) 
+  yfit = dnorm(xfit, mean = mean(histogram_var), sd = sd(histogram_var)) 
+  yfit = yfit * diff(h$mids[1:2]) * length(histogram_var) 
+  lines(xfit, yfit, col = normcol, lwd = 2)
+}
+
+```
+
+
+```{r}
+par(mfrow=c(3,2), cex=0.4)
+drawHistWithNorm(book$student_bezNagrade, "Student [bez nagrade]")
+drawHistWithNorm(book$student_Nagrada, "Student [nagrada]")
+drawHistWithNorm(book$samo.prijatelji_bezNagrade, "Prijatelji [bez nagrade]")
+drawHistWithNorm(book$samo.prijatelji_Nagrada, "Prijatelji [nagrada]")
+drawHistWithNorm(book$cijela.grupa_bezNagrade, "Grupa [bez nagrade]")
+drawHistWithNorm(book$cijela.grupa_Nagrada, "Grupa [nagrada]")
+```
+
+```{r}
+drawqqplot <- function(variable, name) {
+  qqnorm(variable, main = name, xlab = "Teoretski kvantili", ylab = "Uzoracki kvantili")
+  qqline(variable, col="red")
+}
+```
+
+
+```{r}
+par(mfrow=c(3,2), cex = 0.4)
+drawqqplot(book$student_bezNagrade, "Student [bez nagrade]")
+drawqqplot(book$student_Nagrada, "Student [nagrada]")
+drawqqplot(book$samo.prijatelji_bezNagrade, "Prijatelji [bez nagrade]")
+drawqqplot(book$samo.prijatelji_Nagrada, "Prijatelji [nagrada]")
+drawqqplot(book$cijela.grupa_bezNagrade, "Grupa [bez nagrade]")
+drawqqplot(book$cijela.grupa_Nagrada, "Grupa [nagrada]")
+```
+
+\newpage
+
+Raspodjela broja bodova na međuispitu očekivano se ravna po normalnoj razdiobi. 
+\vspace{5mm}
+
+```{r}
+par(mfrow=c(1,2), cex.axis = 0.4, cex.main = 0.8, cex.lab = 0.8)
+drawHistWithNorm(book$MI,"Broj bodova na meduispitu", xname ="Broj bodova")
+drawqqplot(book$MI, "Broj bodova na meduispitu")
+```
+
+\newpage
+
+# Intervali pouzdanosti
+
+S obzirom na svako anketno pitanje, provedeni su 95%-tni intervali pouzdanosti, te su grafički uspoređeni rezultati dobiveni prije i nakon što je studentu rečeno da će za precizan odgovor dobiti nagradu.
+\vspace{5mm}
+``` {r}
+drawBoxPlotWithConfidenceInterval <- function(variable, alpha = 0.05) {
+  t_conf_var = variable[!is.na(variable)]
+  x_mean = mean(variable, na.rm = T)
+  sd = sd(t_conf_var)
+  N = length(t_conf_var)
+  dof = N-1
+  t_alpha_h = qt(1-alpha/2, df = dof)
+  se = sd / sqrt(N)
+  left = x_mean - t_alpha_h * se
+  right = x_mean + t_alpha_h * se
+  boxplot(t_conf_var)
+  lines(c(0.75,1.25),c(left,left),col=4)
+  lines(c(0.75,1.25),c(x_mean,x_mean),col=2,lwd=3)
+  lines(c(0.75,1.25),c(right,right),col=4)
+  legend("topleft", c("Interval pouzdanosti", "Sredja vrijednost"), 
+         lty=1,col = c(4, 2),bty ="n")
+}
+```
+
+``` {r}
+par(mfrow=c(1,2), cex= 0.6)
+drawBoxPlotWithConfidenceInterval(book$student_bezNagrade)
+drawBoxPlotWithConfidenceInterval(book$student_Nagrada)
+```
+\newpage
+```{r}
+par(mfrow=c(1,2), cex= 0.6)
+drawBoxPlotWithConfidenceInterval(book$samo.prijatelji_bezNagrade)
+drawBoxPlotWithConfidenceInterval(book$samo.prijatelji_Nagrada)
+par(mfrow=c(1,2), cex= 0.6)
+drawBoxPlotWithConfidenceInterval(book$cijela.grupa_bezNagrade)
+drawBoxPlotWithConfidenceInterval(book$cijela.grupa_Nagrada)
+```
+\newpage
+Parovi značajki (s i bez nagrade) se gotovo ne razlikuju kod anketnog pitanja za odgovor studenta te za odgovor njegovih prijatelja, dok se u slučaju odgovora za srednju grupu interval pouzdanosti pomakao prema većem broju stranica. 
+
+# Testiranje hipoteza
+Budući da nam nije poznata varijanca značajki, za procjenu intervala pouzdanosti za srednju vrijednost koristili smo t-statistiku. To podrazumijeva korištenje statistike koja se ravna po Studentovoj razdiobi.
+
+# Test o uparenim podacima
+Koristili smo t-statistiku za uparene podatke nad komplementarnim parovima značajki - bez nagrade i s nagradom. Za parove vlastitih odgovora te pretpostavljenih odgovora prijatelja, ne može se zaključiti ništa statistički značajno o različitosti srednjih vrijednosti. Kod para za pretpostavljeni odgovor grupe, s razinom značajnosti od 1% može se odbaciti hipoteza da su srednje vrijednosti odgovora jednake. U tom slučaju prihvaćamo alternativnu hipotezu da je srednja vrijednost odgovora za broj stranica uz nagradu veća.  
+```{r}
+
+t.test(book$student_Nagrada, book$student_bezNagrade, 
+       alternative = "t", conf.level = 0.99, paired = T)
+```
+
+```{r}
+t.test(book$samo.prijatelji_Nagrada, book$samo.prijatelji_bezNagrade, 
+       alternative = "t", conf.level = 0.99, paired = T)
+```
+
+\newpage
+```{r}
+t.test(book$cijela.grupa_Nagrada, book$cijela.grupa_bezNagrade, 
+       alternative = "g", conf.level = 0.99, paired = T)
+```
+
+
+# Odmak od stvarnog broja stranica
+Podaci su transformirani tako da se za svaku značajku izračunao odmak od stvarne vrijednosti stranica knjige - 1171. Podaci se također ravnaju po normalnoj razdiobi budući da oduzimanje od konstante zadržava normalnost. 
+```{r}
+offset = book
+offset$Grupa.Pred = NULL
+offset$spol = NULL
+offset$MI = NULL
+offset = abs(CORRECT_PAGE_NO - offset)
+```
+\newpage
+```{r}
+
+par(mfrow=c(3,2), cex=0.3)
+drawHistWithNorm(offset$student_bezNagrade, "Student [bez nagrade]"
+                 , histcol = 'firebrick1', normcol = 'dimgray')
+drawHistWithNorm(offset$student_Nagrada, "Student [nagrada]"
+                 , histcol = 'firebrick1', normcol = 'dimgray')
+drawHistWithNorm(offset$samo.prijatelji_bezNagrade, "Prijatelji [bez nagrade]"
+                 , histcol = 'firebrick1', normcol = 'dimgray')
+drawHistWithNorm(offset$samo.prijatelji_Nagrada, "Prijatelji [nagrada]"
+                 , histcol = 'firebrick1', normcol = 'dimgray')
+drawHistWithNorm(offset$cijela.grupa_bezNagrade, "Grupa [bez nagrade]"
+                 , histcol = 'firebrick1', normcol = 'dimgray')
+drawHistWithNorm(offset$cijela.grupa_Nagrada, "Grupa [nagrada]"
+                 , histcol = 'firebrick1', normcol = 'dimgray')
+
+```
+\newpage
+```{r}
+par(mfrow=c(3,2), cex = 0.3)
+drawqqplot(offset$student_bezNagrade, "Student [bez nagrade]")
+drawqqplot(offset$student_Nagrada, "Student [nagrada]")
+drawqqplot(offset$samo.prijatelji_bezNagrade, "Prijatelji [bez nagrade]")
+drawqqplot(offset$samo.prijatelji_Nagrada, "Prijatelji [nagrada]")
+drawqqplot(offset$cijela.grupa_bezNagrade, "Grupa [bez nagrade]")
+drawqqplot(offset$cijela.grupa_Nagrada, "Grupa [nagrada]")
+```
+
+\newpage
+Svi parovi značajki testirani su tako da je alternativna hipoteza ona za koju je odmak uz ponuđenu nagradu manji od odmaka bez nagrade. Uz nivo značajnosti od 5% osnovna hipoteza je odbačena samo za pretpostavku o mišljenju cijele grupe. Za druga 2 slučaja, nagrada ne utječe pretjerano na rezultate o broju stranica. 
+```{r}
+
+t.test(offset$student_Nagrada, offset$student_bezNagrade, alternative = "less", conf.level = 0.95, paired = TRUE)
+
+t.test(offset$samo.prijatelji_Nagrada, offset$samo.prijatelji_bezNagrade, alternative = "less", conf.level = 0.95, paired = TRUE)
+
+t.test(offset$cijela.grupa_Nagrada, offset$cijela.grupa_bezNagrade, alternative = "less", conf.level = 0.95, paired = TRUE)
+```
+\newpage
+
+# Neparametarski testovi
+ 
+Iz qqplotova vidljivo je da se ekstrahirani podaci ne ravnaju potpuno po normalnog raziobi. Zbog te pretpostavke korištenje t-testa može biti statistički potpuno neispravno. Iako sa manjom snagom jednostavni neparametarski postupci poslužit će za testiranje istih hipoteza bez pretpostavke normalnosti. Pokazatelj koji se testira ovaj puta je medijan, naspram srednje vrijednosti koja se testirala u t-testu.
+ 
+```{r}
+wilcox.test(offset$student_bezNagrade, offset$student_Nagrada, paired = T)
+wilcox.test(offset$samo.prijatelji_bezNagrade, offset$samo.prijatelji_Nagrada, paired = T)
+wilcox.test(offset$cijela.grupa_Nagrada,offset$cijela.grupa_bezNagrade, paired = T, alternative = "l")
+```
+Naposlijetku je moguće izvući isti zaključak, jedina signifikantna razlika krije se u podacima za procjenu pogotka cijele grupe. Uz razinu značajnosti od 1% moguće je odbaciti nultu hipotezu o jednakosti medijana za procjenu pogotka cijele grupe prije i nakon nagrade. Izgledno je kako ispitanici nakon što im je rečeno da postoji nagrada preciznije određuju konačni cilj, odnosno iako pokušavaju procijeniti što će ostali reći, zapravo se približavaju rješenju.
+
+\newpage
+# Usporedba srednjih vrijednosti predviđanja kod muškaraca i žena
+Usporedba jednakosti srednjih vrijednosti kod ženskih i muških ispitanika. Potrebno je procijeniti postoji li statistički značajna razlika kojom bi zaključili da se kod procjene broja stranica knjige razlikuju ispitanici različitog spola
+```{r}
+muski = which(book$spol == 'M')
+zenski = which(book$spol == 'F')
+muskiBezNagrade = book[muski,]$student_bezNagrade
+zenskiBezNagrade = book[zenski,]$student_bezNagrade
+ 
+t.test(muskiBezNagrade, zenskiBezNagrade, alternative = 't', var.equal = F)
+```
+  Uz razinu značajnosti od 13.3% imati ćemo dovoljno dokaza da se odbaci hipoteza o jednakosti srednjih vrijednosti procjena muške i ženske populacije.
+
+\newpage
+# Analiza procjene broja stranica za cijelu ispitnu grupu
+
+ Provedena je analiza rezultata kvalitete pogađanja broja stranica za cijelu grupu. S obzirom na to da je cilj te kategorije što bolje ocijeniti prosječan odgovor cijele grupe, bilo je potrebno transformirati podatke. Pronađena je srednja vrijednost ukupnih pogađanja kod vlastitih odgovora te je oduzeta od pojedinačnih pogađanja za grupu.
+```{r}
+transformGuesses <- function(groupGuesses, studentGuesses) {
+  groupGuessesOffset = 
+    groupGuesses[!is.na(groupGuesses)] - mean(studentGuesses[!is.na(studentGuesses)])
+  return(groupGuessesOffset)
+}
+
+guessesOffsetBN = transformGuesses(book$cijela.grupa_bezNagrade, book$student_bezNagrade)
+guessesOffsetN = transformGuesses(book$cijela.grupa_Nagrada, book$student_Nagrada)
+
+boxplot(guessesOffsetBN, guessesOffsetN, col = 'orange', 
+        names = c("Pogreska [bez nagrade]", "Pogreska [nagrada]"))
+
+```
+
+\newpage
+```{r}
+t.test(guessesOffsetBN, mu=0, alternative = "t")
+t.test(guessesOffsetN, mu=0, alternative = "t")
+```
+
+\newpage
+# Linearna regresija
+
+```{r}
+drawRegression <- function(var1, var2, name, xname, yname, col = "darkmagenta") {
+  plot(var1, var2, pch = 16, cex = 1.3, col = "darkmagenta", 
+      main = name, xlab = xname, ylab = yname)
+  
+  abline(lm(var1 ~ var2))
+}
+```
+
+```{r}
+guessesOffsetBN = abs(guessesOffsetBN)
+guessesOffsetN = abs(guessesOffsetN)
+
+modelBN = lm(book$MI[complete.cases(book$cijela.grupa_bezNagrade)] ~ guessesOffsetBN)
+summary(modelBN)
+modelN = lm(book$MI[complete.cases(book$cijela.grupa_Nagrada)] ~ guessesOffsetN)
+summary(modelN)
+
+par(mfrow=c(1,2))
+drawqqplot(modelBN$residuals, name="Reziduali")
+drawqqplot(modelN$residuals, name="Reziduali")
+par(mfrow=c(1,2))
+drawRegression(book$MI[complete.cases(book$cijela.grupa_bezNagrade)], guessesOffsetBN,
+               xname="Bodovi [MI]", yname="Odmak od procjene grupe", name="Bez nagrade")
+drawRegression(book$MI[complete.cases(book$cijela.grupa_Nagrada)], guessesOffsetN,
+                xname="Bodovi [MI]", yname="Odmak od procjene grupe", name="S Nagradom")
+```
+
+\newpage
+#ANOVA
+Proveli smo analizu varijanci u 2 slučaja - za situaciju s i bez nagrade. Htjeli smo testirati jesu li srednje vrijednosti iste u slučaju kad student govori za sebe, cijelu grupu i svoje prijatelje. ANOVA za uporabu ima preduvjete da su svi uzorci normalno distribuirani (pokazano prije) te da su sve varijance jednake. Jednakost varijanci provodi se Bartlettovim testom. 
+
+```{r}
+anovaTestingData <- function(a, b, c, aname, bname, cname) {
+  a = a[!is.na(a)]
+  b = b[!is.na(b)]
+  c = c[!is.na(c)]
+  boxplot(a, b, c, names = c(aname, bname, cname), col = "yellow")
+  values = c()
+  values = append(values, a)
+  values = append(values, b)
+  values = append(values, c)
+  labels = rep(c('a', 'b', 'c'), c(length(a), length(b), length(c)))
+  return(data.frame(values, labels))
+}
+
+anovaModelBN = anovaTestingData(book$student_bezNagrade, 
+                                book$cijela.grupa_bezNagrade, 
+                                book$samo.prijatelji_bezNagrade,
+                                "Student BN", "Cijela grupa BN", "Prijatelji BN")
+bartlett.test(anovaModelBN$values~anovaModelBN$labels)
+```
+U prvom testu ANOVU nije bilo moguće provesti budući da pretpostavka o jednakosti varijanci nije bila zadovoljena. P-vrijednost s Bartlettovim testom iznosila je 4.175%, a to nije bilo dovoljno da pretpostavimo da su varijance jednake uz razinu značajnosti od 5%.
+```{r}
+anovaModelN = anovaTestingData(book$student_Nagrada, 
+                               book$cijela.grupa_Nagrada, 
+                               book$samo.prijatelji_Nagrada,
+                               "Student N", "Cijela grupa N", "Prijatelji N")
+bartlett.test(anovaModelN$values~anovaModelN$labels)
+
+anova(lm(anovaModelN$values~anovaModelN$labels))
+```
+U drugom slučaju, p-vrijednost Bartlettovog testa iznosila je 50.17% te se ANOVA mogla provesti. P-vrijednost je iznosila 73.86% u korist hipoteze da su srednje vrijednosti uzoraka iste što se može uvidjeti iz boxplota tih uzoraka. 
+
+Sljedeće što je ispitano je ANOVA za odgovor studenta bez nagrade po grupama. Uz p-vrijednost koja podržava H0 hipotezu, nije bilo dovoljno dokaza da se utvrdi razlika između odgovora o broju stranica. 
+```{r}
+boxplot(book$student_bezNagrade ~ book$Grupa.Pred, col="darkorange", main="Odgovori studenata po grupama", xlab="Grupa", ylab="Broj stranica")
+library(plyr)
+grps =  count(book$Grupa.Pred)
+grps = grps[grps$freq >= 2,]
+filtered2OrMore = book[book$Grupa.Pred %in% grps$x,]
+bartlett.test(filtered2OrMore$student_bezNagrade ~ filtered2OrMore$Grupa.Pred)
+
+model = lm(filtered2OrMore$student_bezNagrade ~ filtered2OrMore$Grupa.Pred)
+anova(model)
+```
+\newpage
+# Neparametarski test
+Kruskal - Wallisov test je kao neparametarski test potvrdio da nema razlika između grupa u odgovorima. 
+```{r}
+kruskal.test(student_bezNagrade ~ Grupa.Pred, data = book)
+```
+
+# Ovisnost procijenjene vjerojatnosti prolaska na MI-u o veličini skupa za učenje
+
+Iskorištena je metoda logističke regresije kako bi se procijenila vjerojatnost ostvarivanja bodovnog praga od 15 bodova (50%) na ispitu. Pomoću stroja potpornih vektora izvršena je klasifikacija studenata temeljena na svim popisanim značajkama u skupu podataka. U nastavku je prikazan graf koji ilustrira ovisnost veličine skupa za učenje o sigurnosti procjene. 
+Na temelju brojnih oscilacija u iscrtanoj krivulji, mogu se primijetiti naznake kaotičnosti podataka. Kada bi postojala neka zakonitost, dobivena krivulja bila bi rastuća bez velikih odstupanja. 
+```{r fig.align='center'}
+probabilityPlot = read.csv("ucenje.csv", header = T)
+plot(probabilityPlot, xlab="Velicina uzorka", ylab="Aproksimirana vjerojatnost prolaska",
+     pch=20)
+lines(probabilityPlot, col="blue")
+```
